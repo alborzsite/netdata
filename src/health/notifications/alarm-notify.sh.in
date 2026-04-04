@@ -272,7 +272,7 @@ syslog
 telegram
 twilio
 smseagle
-whatsapp
+whatsapp_360messenger
 "
 
 # -----------------------------------------------------------------------------
@@ -455,8 +455,8 @@ KAVENEGAR_SENDER=
 # telegram configs
 TELEGRAM_BOT_TOKEN=
 
-# whatsapp (360messenger.com) configs
-WHATSAPP_API_TOKEN=
+# whatsapp_360messenger (360messenger.com) configs
+WHATSAPP_360MESSENGER_API_TOKEN=
 
 # kafka configs
 SEND_KAFKA="YES"
@@ -744,8 +744,8 @@ fi
 # check telegram
 [ -z "${TELEGRAM_BOT_TOKEN}" ] && SEND_TELEGRAM="NO"
 
-# check whatsapp
-[ -z "${WHATSAPP_API_TOKEN}" ] && SEND_WHATSAPP="NO"
+# check whatsapp_360messenger
+[ -z "${WHATSAPP_360MESSENGER_API_TOKEN}" ] && SEND_WHATSAPP_360MESSENGER="NO"
 
 # check kafka
 { [ -z "${KAFKA_URL}" ] || [ -z "${KAFKA_SENDER_IP}" ]; } && SEND_KAFKA="NO"
@@ -814,7 +814,7 @@ check_supported_targets() {
     [ "${SEND_SMSEAGLE}" = "YES" ] ||
     [ "${SEND_KAVENEGAR}" = "YES" ] ||
     [ "${SEND_TELEGRAM}" = "YES" ] ||
-    [ "${SEND_WHATSAPP}" = "YES" ] ||
+    [ "${SEND_WHATSAPP_360MESSENGER}" = "YES" ] ||
     [ "${SEND_PUSHBULLET}" = "YES" ] ||
     [ "${SEND_KAFKA}" = "YES" ] ||
     [ "${SEND_FLEEP}" = "YES" ] ||
@@ -837,7 +837,7 @@ check_supported_targets() {
       SEND_PUSHOVER="NO"
       SEND_PUSHBULLET="NO"
       SEND_TELEGRAM="NO"
-      SEND_WHATSAPP="NO"
+      SEND_WHATSAPP_360MESSENGER="NO"
       SEND_SLACK="NO"
       SEND_MSTEAMS="NO"
       SEND_ROCKETCHAT="NO"
@@ -1020,7 +1020,7 @@ for method in "${SEND_EMAIL}" \
   "${SEND_NTFY}" \
   "${SEND_ILERT}" \
   "${SEND_SIGNL4}" \
-  "${SEND_WHATSAPP}" ; do
+  "${SEND_WHATSAPP_360MESSENGER}" ; do
 
   if [ "${method}" == "YES" ]; then
     proceed=1
@@ -1670,9 +1670,9 @@ send_telegram() {
 }
 
 # -----------------------------------------------------------------------------
-# WhatsApp sender via 360messenger.com
+# WhatsApp 360messenger.com sender
 
-send_whatsapp() {
+send_whatsapp_360messenger() {
   local phones="${1}" message="${2}" httpcode sent=0 phone emoji
 
   case "${status}" in
@@ -1682,19 +1682,19 @@ send_whatsapp() {
   *)        emoji="⚪️" ;;
   esac
 
-  if [ "${SEND_WHATSAPP}" = "YES" ] && [ -n "${WHATSAPP_API_TOKEN}" ] && [ -n "${phones}" ] && [ -n "${message}" ]; then
+  if [ "${SEND_WHATSAPP_360MESSENGER}" = "YES" ] && [ -n "${WHATSAPP_360MESSENGER_API_TOKEN}" ] && [ -n "${phones}" ] && [ -n "${message}" ]; then
     for phone in ${phones}; do
       httpcode=$(docurl \
         -X POST "https://api.360messenger.com/v2/sendMessage" \
-        -H "Authorization: Bearer ${WHATSAPP_API_TOKEN}" \
+        -H "Authorization: Bearer ${WHATSAPP_360MESSENGER_API_TOKEN}" \
         -F "phonenumber=${phone}" \
         -F "text=${emoji} ${message}")
 
       if [ "${httpcode}" = "200" ] || [ "${httpcode}" = "201" ]; then
-        info "sent whatsapp notification to '${phone}' for ${notification_description}"
+        info "sent whatsapp_360messenger notification to '${phone}' for ${notification_description}"
         sent=$((sent + 1))
       else
-        error "failed to send whatsapp notification to '${phone}' for ${notification_description}, with HTTP response status code ${httpcode}."
+        error "failed to send whatsapp_360messenger notification to '${phone}' for ${notification_description}, with HTTP response status code ${httpcode}."
       fi
     done
 
@@ -2925,13 +2925,13 @@ ${chart}
 SENT_TELEGRAM=$?
 
 # -----------------------------------------------------------------------------
-# send the whatsapp message via 360messenger.com
+# send the whatsapp_360messenger message via 360messenger.com
 
-send_whatsapp "${to_whatsapp}" "${host} ${status_message} - ${name//_/ }
+send_whatsapp_360messenger "${to_whatsapp_360messenger}" "${host} ${status_message} - ${name//_/ }
 ${chart}
 ${info}"
 
-SENT_WHATSAPP=$?
+SENT_WHATSAPP_360MESSENGER=$?
 
 # -----------------------------------------------------------------------------
 # send the kafka message
@@ -3896,7 +3896,7 @@ for state in "${SENT_EMAIL}" \
   "${SENT_NTFY}" \
   "${SENT_ILERT}" \
   "${SENT_SIGNL4}" \
-  "${SENT_WHATSAPP}"; do
+  "${SENT_WHATSAPP_360MESSENGER}"; do
   if [ "${state}" -eq 0 ]; then
     # we sent something
     exit 0
